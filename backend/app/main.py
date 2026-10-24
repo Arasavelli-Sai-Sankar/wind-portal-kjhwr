@@ -1,10 +1,10 @@
 
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 
 from backend.app.analysis import (
     get_available_publications,
@@ -20,6 +20,7 @@ app = FastAPI(
     description="API for wind generation forecasts, actuals, and forecast accuracy.",
 )
 
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,11 +30,17 @@ app.add_middleware(
 )
 
 
+# --------------------------------------------------
+# Health endpoint
+# --------------------------------------------------
 @app.get("/api/health")
 def health():
     return {"status": "healthy"}
 
 
+# --------------------------------------------------
+# Summary endpoint
+# --------------------------------------------------
 @app.get("/api/summary")
 def summary():
     try:
@@ -51,6 +58,9 @@ def summary():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --------------------------------------------------
+# Actual generation data
+# --------------------------------------------------
 @app.get("/api/actuals")
 def actuals(
     start_date: str | None = Query(default=None),
@@ -69,13 +79,20 @@ def actuals(
 
         df["startTime"] = df["startTime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        return {"count": len(df), "data": df.to_dict(orient="records")}
+        return {
+            "count": len(df),
+            "data": df.to_dict(orient="records"),
+        }
+
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid date: {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --------------------------------------------------
+# Forecast data
+# --------------------------------------------------
 @app.get("/api/forecasts")
 def forecasts(
     publish_time: str | None = Query(default=None),
@@ -102,13 +119,20 @@ def forecasts(
         df["publishTime"] = df["publishTime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         df["startTime"] = df["startTime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        return {"count": len(df), "data": df.to_dict(orient="records")}
+        return {
+            "count": len(df),
+            "data": df.to_dict(orient="records"),
+        }
+
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid date: {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --------------------------------------------------
+# Available forecast publications
+# --------------------------------------------------
 @app.get("/api/publications")
 def publications():
     try:
@@ -117,6 +141,9 @@ def publications():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --------------------------------------------------
+# Forecast accuracy metrics
+# --------------------------------------------------
 @app.get("/api/metrics")
 def metrics(
     publish_time: str | None = Query(default=None),
@@ -129,16 +156,21 @@ def metrics(
             end_date=end_date,
             publish_time=publish_time,
         )
+
         return {
             "metrics": get_metrics(comparison),
             "count": len(comparison),
         }
+
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid date: {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# --------------------------------------------------
+# Forecast versus actual comparison
+# --------------------------------------------------
 @app.get("/api/comparison")
 def comparison(
     publish_time: str | None = Query(default=None),
@@ -155,28 +187,42 @@ def comparison(
         df["publishTime"] = df["publishTime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         df["startTime"] = df["startTime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        return {"count": len(df), "data": df.to_dict(orient="records")}
+        return {
+            "count": len(df),
+            "data": df.to_dict(orient="records"),
+        }
+
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid date: {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.get("/")
-def home():
-    return {
-        "message": "Wind Forecast Intelligence Portal",
-        "docs": "/docs",
-        "health": "/api/health",
-    }
+# --------------------------------------------------
+# Serve the React frontend
+# --------------------------------------------------
+# main.py is located at backend/app/main.py.
+# parents[0] = backend/app
+# parents[1] = backend
+# parents[2] = project root (/app in Docker)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+FRONTEND_DIST = PROJECT_ROOT / "frontend" / "dist"
 
-
-# Serve the built React app when the frontend build is present.
-frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
-
-if frontend_dist.exists():
+if FRONTEND_DIST.is_dir():
+    # Mount the built React app at the root.
+    # Keep this AFTER all /api routes.
     app.mount(
         "/",
-        StaticFiles(directory=str(frontend_dist), html=True),
+        StaticFiles(directory=str(FRONTEND_DIST), html=True),
         name="frontend",
     )
+else:
+    # Fallback for environments where the frontend hasn't been built.
+    @app.get("/")
+    def home():
+        return {
+            "message": "Wind Forecast Intelligence Portal",
+            "docs": "/docs",
+            "health": "/api/health",
+            "frontend_status": "Frontend build not found",
+        }
