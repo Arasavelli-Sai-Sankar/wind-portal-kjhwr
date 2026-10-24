@@ -1,16 +1,140 @@
-# React + Vite
+# Wind Forecast Intelligence Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A full-stack renewable energy analytics application for analyzing wind generation, comparing forecasts against actual generation, and evaluating forecast accuracy.
 
-Currently, two official plugins are available:
+## Live Application
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Dashboard:** https://wind-portal-kjhwr.onrender.com/
 
-## React Compiler
+**API Documentation:** https://wind-portal-kjhwr.onrender.com/docs
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Health Check:** https://wind-portal-kjhwr.onrender.com/api/health
 
-## Expanding the Oxlint configuration
+## Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- Interactive wind generation analytics dashboard.
+- Actual versus forecast generation comparison.
+- Forecast publication selection.
+- Date-based filtering.
+- Forecast accuracy metrics, including MAE, RMSE, MAPE, and bias.
+- Historical data exploration.
+- REST API built with FastAPI.
+- Interactive charts and visualizations using React.
+
+## Technology Stack
+
+### Frontend
+- React
+- Vite
+- JavaScript
+- Recharts
+- HTML and CSS
+
+### Backend
+- Python
+- FastAPI
+- Pandas
+- NumPy
+
+### Deployment
+- Docker
+- Render
+- GitHub
+
+## Project Structure
+
+```text
+wind-portal-kjhwr/
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   └── analysis.py
+│   ├── data/
+│   │   ├── actuals.csv
+│   │   └── forecasts.csv
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── ...
+├── Dockerfile
+├── .gitignore
+└── README.md
+```
+
+## API Endpoints
+
+| Endpoint | Description |
+|---|---|
+| `/api/health` | Health check |
+| `/api/summary` | Summary statistics |
+| `/api/actuals` | Actual generation data |
+| `/api/forecasts` | Forecast generation data |
+| `/api/publications` | Available forecast publications |
+| `/api/metrics` | Forecast accuracy metrics |
+| `/api/comparison` | Forecast versus actual comparison |
+| `/docs` | Interactive API documentation |
+
+## Running Locally
+
+### Prerequisites
+- Python 3.11 or compatible version
+- Node.js and npm
+- Git
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Arasavelli-Sai-Sankar/wind-portal-kjhwr.git
+cd wind-portal-kjhwr
+```
+
+### 2. Start the backend
+
+Create and activate a virtual environment, then install the Python dependencies.
+
+On Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r backend/requirements.txt
+python -m uvicorn backend.app.main:app --reload --port 8000
+```
+
+### 3. Start the frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local frontend URL printed by Vite in your terminal.
+
+## Forecast Accuracy Metrics
+
+The application evaluates forecast performance using:
+
+- **MAE:** Mean Absolute Error.
+- **RMSE:** Root Mean Squared Error.
+- **MAPE:** Mean Absolute Percentage Error.
+- **Bias:** Average signed forecast error.
+
+These metrics help users understand forecast deviations and whether forecasts tend to overestimate or underestimate actual generation.
+
+## Deployment
+
+The application is containerized with Docker and deployed on Render.
+
+Live URL: https://wind-portal-kjhwr.onrender.com/
+
+## AI Tools Disclosure
+
+AI tools were used to assist with code development, debugging, implementation guidance, and documentation. The resulting application was tested during development.
+
+## Author
+
+Developed as a full-stack software engineering challenge project.
